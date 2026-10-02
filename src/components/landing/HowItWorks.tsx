@@ -44,7 +44,7 @@ export function HowItWorks() {
     {
       icon: <LayoutTemplate className="h-5 w-5" />,
       title: "Pick a template",
-      body: "Start from 30 looks built for real stages, from dark techno tunnels to golden-hour house gradients.",
+      body: "Start from 27 tour-style looks: 3D names in ice, chrome and gold, reggaeton heat, dark techno rooms and more.",
       visual: (
         <div className="grid h-full grid-cols-2 gap-1.5 p-1.5">
           {scenes.pick.map((s, i) => (
