@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 6 6 9;
+  --surface-1: 12 12 17;
+  --surface-2: 18 18 25;
+  --surface-3: 26 26 35;
+  --ink: 244 244 247;
+  --muted: 154 154 171;
+  --subtle: 98 98 114;
+  --accent: 139 92 246;
+  --accent-soft: 167 139 250;
+  --accent-cyan: 34 211 238;
+  --accent-pink: 244 114 182;
+  --live: 255 59 92;
+  --success: 52 211 153;
+  --warning: 251 191 36;
+  --danger: 248 113 113;
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body {
+    @apply bg-bg text-ink antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: rgb(var(--accent) / 0.45);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.12) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.1);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(255 255 255 / 0.18);
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent-soft));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .text-gradient {
+    @apply bg-brand bg-clip-text text-transparent;
+    background-size: 200% 200%;
+  }
+  .panel {
+    @apply rounded-2xl border border-line bg-surface-1;
+  }
+  .hairline {
+    @apply border-line;
+  }
+  .label {
+    @apply text-2xs font-medium uppercase tracking-[0.14em] text-subtle;
+  }
+  .kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-line-strong bg-surface-3 px-1.5 font-mono text-[10px] font-medium text-muted;
+  }
+  .show-icon-btn {
+    @apply flex h-8 w-8 items-center justify-center rounded-lg bg-black/50 text-white/70 backdrop-blur transition-colors hover:bg-white/15 hover:text-white;
+  }
+  .show-pill {
+    @apply flex h-8 items-center gap-1.5 rounded-lg bg-white/[0.07] px-3 text-[11px] font-semibold text-white/75 transition-all hover:bg-white/[0.14] hover:text-white active:scale-95;
+  }
+  .show-pill-active {
+    @apply bg-white text-black hover:bg-white hover:text-black;
+  }
+  .show-pill-live {
+    @apply bg-live text-white shadow-[0_0_20px_rgb(255_59_92/0.6)] hover:bg-live hover:text-white;
+  }
+  .noise-bg {
+    background-image: radial-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Range input reset, styled by components/ui/Slider. */
+input[type="range"].vd-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  height: 18px;
+  cursor: pointer;
+}
+input[type="range"].vd-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--accent-soft)) 0%,
+    rgb(var(--accent-cyan)) var(--fill, 50%),
+    rgb(255 255 255 / 0.1) var(--fill, 50%)
+  );
+}
+input[type="range"].vd-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+}
+input[type="range"].vd-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(var(--accent-soft)), rgb(var(--accent-cyan)));
+}
+input[type="range"].vd-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -6px;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 0 0 4px rgb(var(--accent) / 0.25), 0 2px 6px rgb(0 0 0 / 0.6);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+input[type="range"].vd-range::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 0;
+  box-shadow: 0 0 0 4px rgb(var(--accent) / 0.25), 0 2px 6px rgb(0 0 0 / 0.6);
+}
+input[type="range"].vd-range:hover::-webkit-slider-thumb,
+input[type="range"].vd-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgb(var(--accent) / 0.35), 0 0 16px rgb(var(--accent) / 0.6);
+}
+input[type="range"].vd-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+input[type="range"].vd-range:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
