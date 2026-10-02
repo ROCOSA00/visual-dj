@@ -18,7 +18,7 @@ import { sortedProjects, useProjectsStore } from "@/store/projects";
 import { useSettingsStore } from "@/store/settings";
 import { useAppUi } from "./appUi";
 
-const QUICK_LOOKS = ["signature", "neon-district", "warehouse-pulse", "sunset-boulevard", "main-stage", "outrun-86"];
+const QUICK_LOOKS = ["ice-land", "chrome-perreo", "dembow-fuego", "neon-barrio", "red-room", "gold-vip"];
 
 export function CreateVisualDialog() {
   const open = useAppUi((s) => s.createOpen);

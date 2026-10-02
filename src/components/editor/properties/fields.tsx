@@ -33,7 +33,7 @@ export function FieldRenderer({ field, layer, update }: FieldProps) {
     case "slider":
       return (
         <Slider
-          label={field.label}
+          label={typeof field.label === "function" ? field.label(layer) : field.label}
           value={Number(get(field.path) ?? 0)}
           min={field.min}
           max={field.max}

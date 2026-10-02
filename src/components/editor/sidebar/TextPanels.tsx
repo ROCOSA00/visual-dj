@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/Button";
 import { FitText } from "@/components/ui/FitText";
 import { TextInput, Toggle } from "@/components/ui/controls";
 import { ARTIST_STYLES, QUICK_TEXT, TEXT_PRESETS, type ArtistStyle, type TextPreset } from "@/data/presets";
-import { createArtistName, createText } from "@/domain/factories";
-import type { TextLayer } from "@/domain/types";
+import { createArtistName, createBackground, createScene, createText } from "@/domain/factories";
+import type { Scene, TextLayer } from "@/domain/types";
 import { fontFamilies } from "@/styles/fonts";
 import { editorActions } from "@/store/editorActions";
 import { useActiveProject, useActiveScene } from "../hooks";
-import { PanelSection } from "./common";
+import { PanelSection, PreviewTile } from "./common";
 import { cn } from "@/lib/utils";
 
 export function TextPanel() {
@@ -80,6 +80,22 @@ function TextStyleTile({ preset, onClick }: { preset: TextPreset; onClick: () =>
   );
 }
 
+const styleSceneCache = new Map<string, Scene>();
+
+/** Mini preview scene for an artist-name style, cached per palette. */
+function styleScene(style: ArtistStyle, palette: string[]): Scene {
+  const key = `${style.id}|${palette.join()}`;
+  let scene = styleSceneCache.get(key);
+  if (!scene) {
+    scene = createScene(style.label, [
+      createBackground({ mode: "solid", color: "#030306" }),
+      createArtistName({ ...style.build(palette), transform: { x: 0.5, y: 0.47, scale: 1, rotation: 0 } }),
+    ]);
+    styleSceneCache.set(key, scene);
+  }
+  return scene;
+}
+
 export function ArtistPanel() {
   const project = useActiveProject();
   const scene = useActiveScene();
@@ -87,6 +103,7 @@ export function ArtistPanel() {
   if (!project) return null;
   const artistLayer = scene?.layers.find((l): l is TextLayer => l.kind === "text" && l.role === "artist");
   const palette = project.palette;
+  const styleScenes = ARTIST_STYLES.map((style) => styleScene(style, palette));
 
   const applyStyle = (style: ArtistStyle) => {
     const patch = style.build(palette);
@@ -133,35 +150,22 @@ export function ArtistPanel() {
       )}
 
       <PanelSection title="Name styles">
-        <div className="grid grid-cols-2 gap-2">
-          {ARTIST_STYLES.map((style) => (
-            <button
-              key={style.id}
-              type="button"
-              onClick={() => applyStyle(style)}
-              className="group/tile flex flex-col gap-1.5 rounded-xl p-1 text-left hover:bg-white/[0.04]"
-            >
-              <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg border border-line bg-[radial-gradient(circle_at_50%_40%,#1a1426,#07070a)] px-2 transition-all group-hover/tile:border-white/25">
-                <FitText
-                  max={17}
-                  className={cn("uppercase", style.preview.gradient && "text-gradient")}
-                  style={{
-                    fontFamily: fontFamilies[style.preview.font],
-                    fontWeight: style.preview.weight,
-                    letterSpacing: style.preview.spacing,
-                    color: style.preview.outline ? "transparent" : undefined,
-                    WebkitTextStroke: style.preview.outline ? "1px white" : undefined,
-                  }}
-                >
-                  {project.artistName || "Your name"}
-                </FitText>
-                {artistLayer?.font === style.build(palette).font && (
-                  <Check className="absolute right-1.5 top-1.5 h-3.5 w-3.5 text-accent-soft" />
-                )}
-              </div>
-              <span className="px-0.5 text-[11px] font-medium text-muted group-hover/tile:text-ink">{style.label}</span>
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-1">
+          {ARTIST_STYLES.map((style, i) => {
+            const patch = style.build(palette);
+            const active = artistLayer?.material === patch.material && artistLayer?.font === patch.font;
+            return (
+              <PreviewTile
+                key={style.id}
+                scene={styleScenes[i]!}
+                label={style.label}
+                artistName={project.artistName || "YOUR NAME"}
+                active={active}
+                badge={active ? <Check className="h-3.5 w-3.5 text-accent-soft" /> : undefined}
+                onClick={() => applyStyle(style)}
+              />
+            );
+          })}
         </div>
         <div className="rounded-xl border border-line bg-white/[0.02] p-3">
           <Toggle

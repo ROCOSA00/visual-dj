@@ -10,7 +10,7 @@ export type Field<L extends Layer = Layer> =
   | (Base<L> & {
       type: "slider";
       path: string;
-      label: string;
+      label: string | ((layer: L) => string);
       min: number;
       max: number;
       step?: number;

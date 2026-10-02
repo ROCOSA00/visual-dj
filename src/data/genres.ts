@@ -1,4 +1,5 @@
 export type GenreId =
+  | "urban"
   | "techno"
   | "house"
   | "edm"
@@ -19,6 +20,7 @@ export interface Genre {
 }
 
 export const GENRES: Genre[] = [
+  { id: "urban", label: "Urban", tagline: "Reggaeton, dembow & afro", colors: ["#2b8cff", "#001a4d"] },
   { id: "techno", label: "Techno", tagline: "Dark, driving, hypnotic", colors: ["#ff1f3d", "#3b0010"] },
   { id: "house", label: "House", tagline: "Warm grooves and golden hour", colors: ["#ff7a3d", "#ff3d81"] },
   { id: "edm", label: "EDM", tagline: "Main stage energy", colors: ["#00e5ff", "#ff2bd6"] },

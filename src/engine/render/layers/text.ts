@@ -3,6 +3,7 @@ import type { TextLayer } from "@/domain/types";
 import { canvasFont, fontGeneration } from "../../fontLoader";
 import { phase, type RenderEnv } from "../env";
 import { STAGE_H, STAGE_W, TAU, easeInOut, easeOutCubic, fract, hash, hashString } from "../utils";
+import { getTextSprite, spriteScaleBucket, tintedSprite, type TextLayout } from "./textSprite";
 
 const prefixCache = new Map<string, number[]>();
 
@@ -29,17 +30,21 @@ export function resolveText(l: TextLayer, artistName: string, editing: boolean):
   return text;
 }
 
+type Spacing = CanvasRenderingContext2D & { letterSpacing: string };
+
 export function drawText(env: RenderEnv, l: TextLayer): void {
   const { ctx } = env;
   const text = resolveText(l, env.artistName, env.editing);
   if (!text) return;
+  const material = l.material ?? "solid";
+  const depth = l.depth ?? 0;
 
   const lines = text.split("\n");
   const weight = nearestWeight(l.font, l.weight);
   const font = canvasFont(l.font, weight, l.size);
   ctx.font = font;
   const hasSpacing = "letterSpacing" in ctx;
-  if (hasSpacing) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = `${l.letterSpacing}px`;
+  if (hasSpacing) (ctx as Spacing).letterSpacing = `${l.letterSpacing}px`;
   ctx.textBaseline = "middle";
   ctx.textAlign = "left";
 
@@ -57,7 +62,6 @@ export function drawText(env: RenderEnv, l: TextLayer): void {
   // Long artist names never spill off the screen: shrink to fit the stage.
   const fit = Math.min(1, (STAGE_W * 0.92) / (blockW * l.transform.scale));
   const baseScale = l.transform.scale * fit;
-
   env.bounds?.set(l.id, { x: ax, y: ay, ox, oy, w: blockW, h: blockH, scale: baseScale, rotation });
 
   /* ------------------------------- animation ------------------------------ */
@@ -68,7 +72,9 @@ export function drawText(env: RenderEnv, l: TextLayer): void {
   let dy = 0;
   let alpha = 1;
   let rot = 0;
+  let yaw = 0;
   let chroma = l.chromatic;
+  let flash = 0;
   let visibleChars = Infinity;
   let cursor = false;
   let waveAmp = 0;
@@ -77,6 +83,21 @@ export function drawText(env: RenderEnv, l: TextLayer): void {
   let glitchSeed = 0;
 
   switch (l.animation) {
+    case "punch": {
+      const beat = phase(env, 1, sp);
+      const e = Math.exp(-fract(beat) * 9);
+      s = 1 + 0.13 * e;
+      rot = (hash(Math.floor(beat) + seed) - 0.5) * 0.05 * e;
+      flash = e;
+      break;
+    }
+    case "swing":
+      yaw = Math.sin(phase(env, 8, sp) * TAU) * 0.55;
+      dy = Math.sin(phase(env, 8, sp) * TAU * 2) * 8;
+      break;
+    case "spin3d":
+      yaw = phase(env, 16, sp) * TAU;
+      break;
     case "pulse": {
       const e = Math.exp(-fract(phase(env, 1, sp)) * 5);
       s = 1 + 0.06 * e;
@@ -150,109 +171,142 @@ export function drawText(env: RenderEnv, l: TextLayer): void {
     chroma += l.audioReact * 0.25 * env.audio.kick;
   }
 
-  /* -------------------------------- drawing ------------------------------- */
   ctx.save();
   ctx.translate(ax + dx, ay + dy);
   ctx.rotate(rotation + rot);
-  ctx.scale(baseScale * s, baseScale * s);
   ctx.globalAlpha *= alpha;
-  const pr = env.pixelRatio * baseScale * s;
-  if (l.blur > 0) ctx.filter = `blur(${l.blur * pr}px)`;
+  const perChar = waveAmp > 0 || visibleChars !== Infinity;
 
-  const layerComposite = ctx.globalCompositeOperation;
-  let fill: string | CanvasGradient = l.color;
-  if (l.gradient.enabled) {
-    const g = ctx.createLinearGradient(ox, 0, ox + blockW, 0);
-    g.addColorStop(0, l.gradient.from);
-    g.addColorStop(1, l.gradient.to);
-    fill = g;
+  if (perChar) {
+    ctx.scale(baseScale * s, baseScale * s);
+    drawPerChar();
+  } else {
+    drawSprite();
   }
-  const outlineWidth = Math.max(2, l.size * 0.035);
+  ctx.restore();
+  if (hasSpacing) (ctx as Spacing).letterSpacing = "0px";
 
-  const drawLines = (style: string | CanvasGradient, offX = 0, offY = 0) => {
-    if (l.outline) {
-      ctx.strokeStyle = style;
-      ctx.lineWidth = outlineWidth;
-      ctx.lineJoin = "round";
-    } else {
-      ctx.fillStyle = style;
+  /* --------------------------- sprite (3D) path --------------------------- */
+  function drawSprite() {
+    const pr = env.pixelRatio * baseScale * s;
+    const layout: TextLayout = { lines, widths, blockW, lineH, ox, oy, font };
+    const sprite = getTextSprite(l, text, layout, spriteScaleBucket(env.pixelRatio * baseScale * 1.15), fontGeneration);
+
+    // Fake 3D yaw: squash horizontally and shear for perspective.
+    const cosY = Math.cos(yaw);
+    const sinY = Math.sin(yaw);
+    // Two-sided sign: the name never reads mirrored when it turns its back.
+    if (yaw !== 0) ctx.transform(Math.max(0.04, Math.abs(cosY)), sinY * 0.16, 0, 1, 0, 0);
+    ctx.scale(baseScale * s, baseScale * s);
+    if (l.blur > 0) ctx.filter = `blur(${l.blur * pr}px)`;
+    const layerComposite = ctx.globalCompositeOperation;
+    const blit = (img: CanvasImageSource, offX = 0, offY = 0) => ctx.drawImage(img, sprite.x + offX, sprite.y + offY, sprite.w, sprite.h);
+
+    // Extruded sides, back to front.
+    if (depth > 0) {
+      const depthPx = depth * l.size * 0.34;
+      const steps = Math.max(4, Math.round((8 + depth * 22) * (0.5 + 0.5 * env.quality)));
+      const ex = (-sinY * Math.sign(cosY || 1) * 0.9 + 0.18) * depthPx;
+      const ey = depthPx * 0.9;
+      // Back outline first so the block reads as a solid with lit edges.
+      blit(sprite.rim, ex, ey);
+      for (let i = steps; i >= 1; i--) {
+        const t = i / steps;
+        blit(sprite.side, ex * t, ey * t);
+      }
     }
-    let charBudget = visibleChars;
-    lines.forEach((line, i) => {
-      const lw = widths[i]!;
-      const lx = ox + (l.align === "left" ? 0 : l.align === "right" ? blockW - lw : (blockW - lw) / 2) + offX;
-      const ly = oy + lineH * (i + 0.5) + offY;
-      const chars = Array.from(line);
-      const needsPerChar = waveAmp > 0 || charBudget < chars.length;
-      if (!needsPerChar) {
-        if (l.outline) ctx.strokeText(line, lx, ly);
-        else ctx.fillText(line, lx, ly);
-        charBudget -= chars.length;
-        if (cursor && charBudget <= 0 && i === lines.length - 1) drawCursor(lx + lw, ly);
-        return;
-      }
-      const pw = prefixWidths(ctx, measureKey, line);
-      const count = Math.max(0, Math.min(chars.length, charBudget));
-      for (let c = 0; c < count; c++) {
-        const yOff = waveAmp ? Math.sin(wavePhase - c * 0.55) * waveAmp : 0;
-        if (l.outline) ctx.strokeText(chars[c]!, lx + pw[c]!, ly + yOff);
-        else ctx.fillText(chars[c]!, lx + pw[c]!, ly + yOff);
-      }
-      if (cursor && charBudget >= 0 && charBudget <= chars.length) drawCursor(lx + pw[count]! + l.size * 0.04, ly);
-      charBudget -= chars.length;
-    });
-  };
 
-  const drawCursor = (x: number, y: number) => {
-    const prev = ctx.fillStyle;
-    ctx.fillStyle = typeof fill === "string" ? fill : l.gradient.to;
-    ctx.fillRect(x, y - l.size * 0.42, l.size * 0.07, l.size * 0.84);
-    ctx.fillStyle = prev;
-  };
-
-  // Chromatic aberration: red and cyan ghosts underneath the main pass.
-  const chromaPx = chroma * 16 + (glitchBands ? 10 : 0);
-  if (chromaPx > 0.5) {
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha *= 0.85;
-    drawLines("#ff1f5a", -chromaPx, 0);
-    drawLines("#18e0ff", chromaPx, 0);
-    ctx.restore();
-    ctx.globalCompositeOperation = layerComposite;
-  }
-
-  const mainPass = () => {
-    if (l.glow > 0) {
-      ctx.shadowColor = l.glowColor;
-      ctx.shadowBlur = l.glow * 70 * pr;
-      drawLines(fill);
-      if (l.glow > 0.35) {
-        ctx.shadowBlur = l.glow * 22 * pr;
-        drawLines(fill);
-      }
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = "transparent";
-    } else {
-      drawLines(fill);
-    }
-  };
-
-  if (glitchBands) {
-    const bands = 4;
-    for (let b = 0; b < bands; b++) {
+    const chromaPx = chroma * 16 + (glitchBands ? 10 : 0);
+    if (chromaPx > 0.5) {
       ctx.save();
-      ctx.beginPath();
-      ctx.rect(ox - 200, oy + (blockH / bands) * b, blockW + 400, blockH / bands + 1);
-      ctx.clip();
-      ctx.translate((hash(glitchSeed * 7.3 + b) - 0.5) * 70, 0);
-      mainPass();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha *= 0.8;
+      blit(tintedSprite(sprite, "#ff1f5a"), -chromaPx, 0);
+      blit(tintedSprite(sprite, "#18e0ff"), chromaPx, 0);
+      ctx.restore();
+      ctx.globalCompositeOperation = layerComposite;
+    }
+
+    const front = () => {
+      if (l.glow > 0) {
+        ctx.shadowColor = l.glowColor;
+        ctx.shadowBlur = l.glow * 70 * pr;
+        blit(sprite.front);
+        if (l.glow > 0.35) {
+          ctx.shadowBlur = l.glow * 20 * pr;
+          blit(sprite.front);
+        }
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = "transparent";
+      } else {
+        blit(sprite.front);
+      }
+    };
+
+    if (glitchBands) {
+      const bands = 4;
+      for (let b = 0; b < bands; b++) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(ox - 200, oy + (blockH / bands) * b, blockW + 400, blockH / bands + 1);
+        ctx.clip();
+        ctx.translate((hash(glitchSeed * 7.3 + b) - 0.5) * 70, 0);
+        front();
+        ctx.restore();
+      }
+    } else {
+      front();
+    }
+
+    // Beat flash: a quick white burn on the letters.
+    if (flash > 0.05) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha *= flash * 0.45;
+      blit(tintedSprite(sprite, "#ffffff"));
       ctx.restore();
     }
-  } else {
-    mainPass();
   }
 
-  ctx.restore();
-  if (hasSpacing) (ctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "0px";
+  /* ------------------- per-character path (wave, typewriter) ------------------ */
+  function drawPerChar() {
+    const pr = env.pixelRatio * baseScale * s;
+    if (l.blur > 0) ctx.filter = `blur(${l.blur * pr}px)`;
+    const fill: string | CanvasGradient = l.gradient.enabled
+      ? (() => {
+          const g = ctx.createLinearGradient(ox, 0, ox + blockW, 0);
+          g.addColorStop(0, l.gradient.from);
+          g.addColorStop(1, l.gradient.to);
+          return g;
+        })()
+      : l.color;
+    const outline = l.outline || material === "neon";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(2, l.size * 0.035);
+    if (outline) ctx.strokeStyle = fill;
+    else ctx.fillStyle = fill;
+    if (l.glow > 0) {
+      ctx.shadowColor = l.glowColor;
+      ctx.shadowBlur = l.glow * 50 * pr;
+    }
+    let budget = visibleChars;
+    lines.forEach((line, i) => {
+      const lw = widths[i]!;
+      const lx = ox + (l.align === "left" ? 0 : l.align === "right" ? blockW - lw : (blockW - lw) / 2);
+      const ly = oy + lineH * (i + 0.5);
+      const chars = Array.from(line);
+      const pw = prefixWidths(ctx, measureKey, line);
+      const count = Math.max(0, Math.min(chars.length, budget));
+      for (let c = 0; c < count; c++) {
+        const yOff = waveAmp ? Math.sin(wavePhase - c * 0.55) * waveAmp : 0;
+        if (outline) ctx.strokeText(chars[c]!, lx + pw[c]!, ly + yOff);
+        else ctx.fillText(chars[c]!, lx + pw[c]!, ly + yOff);
+      }
+      if (cursor && budget >= 0 && budget <= chars.length) {
+        ctx.fillStyle = typeof fill === "string" ? fill : l.gradient.to;
+        ctx.fillRect(lx + pw[count]! + l.size * 0.04, ly - l.size * 0.42, l.size * 0.07, l.size * 0.84);
+      }
+      budget -= chars.length;
+    });
+  }
 }

@@ -52,6 +52,7 @@ const config: Config = {
         marquee: { from: { transform: "translateX(0)" }, to: { transform: "translateX(-50%)" } },
         "gradient-pan": { "0%,100%": { backgroundPosition: "0% 50%" }, "50%": { backgroundPosition: "100% 50%" } },
         "spin-slow": { to: { transform: "rotate(360deg)" } },
+        "fade-up": { from: { opacity: "0", transform: "translateY(16px)" }, to: { opacity: "1", transform: "translateY(0)" } },
       },
       animation: {
         shimmer: "shimmer 1.6s infinite",
@@ -60,6 +61,7 @@ const config: Config = {
         marquee: "marquee 40s linear infinite",
         "gradient-pan": "gradient-pan 8s ease infinite",
         "spin-slow": "spin-slow 14s linear infinite",
+        "fade-up": "fade-up 0.7s cubic-bezier(0.22,1,0.36,1) both",
       },
     },
   },

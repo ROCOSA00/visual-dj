@@ -9,7 +9,7 @@ import { VisualCanvas } from "@/components/visual/VisualCanvas";
 import { TEMPLATE_MAP } from "@/data/templates";
 import { buildShowSet } from "@/domain/templates";
 
-const HERO_TEMPLATES = ["neon-district", "main-stage", "warehouse-pulse", "sunset-boulevard", "hyperdrive"];
+const HERO_TEMPLATES = ["ice-land", "chrome-perreo", "dembow-fuego", "neon-barrio", "gold-vip"];
 const RAIL = [Type, Mic2, BadgeCheck, ImageIcon, Film, Shapes, PaintBucket, Wand2, Blend, Sparkle, AudioLines, LayoutTemplate];
 
 export function Hero() {
@@ -33,38 +33,30 @@ export function Hero() {
       </div>
 
       <div className="mx-auto max-w-7xl px-5 text-center sm:px-8">
-        <motion.a
+        <a
           href="#features"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-white/[0.04] py-1 pl-1 pr-3 text-xs text-muted backdrop-blur transition-colors hover:text-ink"
+          className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-line-strong bg-white/[0.04] py-1 pl-1 pr-3 text-xs text-muted backdrop-blur transition-colors hover:text-ink"
         >
           <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black">New</span>
-          Audio-reactive visuals, live in your browser
+          3D artist names in ice, chrome & gold
           <ArrowRight className="h-3 w-3" />
-        </motion.a>
-        <motion.h1
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.06, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mx-auto mt-6 max-w-5xl text-balance font-display text-[38px] font-semibold leading-[1.04] tracking-tight text-ink sm:text-6xl lg:text-[72px]"
+        </a>
+        <h1
+          style={{ animationDelay: "60ms" }}
+          className="animate-fade-up mx-auto mt-6 max-w-5xl text-balance font-display text-[38px] font-semibold leading-[1.04] tracking-tight text-ink sm:text-6xl lg:text-[72px]"
         >
           Create visuals that <span className="text-gradient animate-gradient-pan">move with your sound</span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12, duration: 0.6 }}
-          className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg"
+        </h1>
+        <p
+          style={{ animationDelay: "120ms" }}
+          className="animate-fade-up mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted sm:text-lg"
         >
-          Design custom visuals for your DJ sets in minutes. Pick a template, add your name and logo, tweak colours and
-          motion, and take it to the stage. No design or VJ skills needed.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.18, duration: 0.6 }}
-          className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+          Tour-style visuals for your DJ sets in minutes: your name in huge 3D letters, your photo, your colours, lights
+          that hit on every kick. Pick a template, make it yours and take it to the stage. No design or VJ skills needed.
+        </p>
+        <div
+          style={{ animationDelay: "180ms" }}
+          className="animate-fade-up mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
           <ButtonLink href="/dashboard" variant="primary" size="lg" iconRight={<ArrowRight className="h-4 w-4" />} className="w-full sm:w-auto">
             Create your visuals
@@ -72,18 +64,16 @@ export function Hero() {
           <ButtonLink href="/templates" variant="secondary" size="lg" className="w-full sm:w-auto">
             Explore templates
           </ButtonLink>
-        </motion.div>
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-5 text-xs text-subtle">
+        </div>
+        <p style={{ animationDelay: "300ms" }} className="animate-fade-up mt-5 text-xs text-subtle">
           Free during beta · Runs in your browser · Nothing to install
-        </motion.p>
+        </p>
       </div>
 
       {/* Product preview */}
-      <motion.div
-        initial={{ opacity: 0, y: 40, rotateX: 8 }}
-        animate={{ opacity: 1, y: 0, rotateX: 0 }}
-        transition={{ delay: 0.25, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-        className="relative mx-auto mt-16 max-w-6xl px-4 [perspective:1600px] sm:mt-20 sm:px-8"
+      <div
+        style={{ animationDelay: "250ms" }}
+        className="animate-fade-up relative mx-auto mt-16 max-w-6xl px-4 [perspective:1600px] sm:mt-20 sm:px-8"
       >
         <div className="pointer-events-none absolute inset-x-10 -bottom-10 top-10 -z-10 rounded-[40px] bg-[radial-gradient(closest-side,rgb(139_92_246/0.45),transparent)] blur-3xl" />
         <div className="overflow-hidden rounded-2xl border border-line-strong bg-surface-1 shadow-[0_40px_140px_-30px_rgb(0_0_0/0.9),0_0_0_1px_rgb(255_255_255/0.04)] sm:rounded-[20px]">
@@ -185,7 +175,7 @@ export function Hero() {
         <FloatingChip className="-right-6 bottom-[22%] hidden lg:flex" delay={2.1}>
           <span className="font-mono">{current.template.bpm}</span> BPM · Tap tempo
         </FloatingChip>
-      </motion.div>
+      </div>
     </section>
   );
 }

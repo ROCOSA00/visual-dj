@@ -6,9 +6,9 @@ import type { Project } from "@/domain/types";
 export function createDemoProjects(artistName: string): Project[] {
   const now = Date.now();
   const demos: Array<[string, string, number]> = [
-    ["neon-district", "Neon Nights · Festival Main Stage", 1000 * 60 * 25],
-    ["warehouse-pulse", "Warehouse Closing Set", 1000 * 60 * 60 * 5],
-    ["sunset-boulevard", "Sunset Rooftop Session", 1000 * 60 * 60 * 30],
+    ["ice-land", "Ice Land · Arena Tour 2025", 1000 * 60 * 25],
+    ["chrome-perreo", "Viernes Perreo · Club Set", 1000 * 60 * 60 * 5],
+    ["sunset-chrome", "Sunset Rooftop Session", 1000 * 60 * 60 * 30],
   ];
   return demos.flatMap(([templateId, name, age]) => {
     const template = TEMPLATE_MAP[templateId];

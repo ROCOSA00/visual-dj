@@ -130,7 +130,8 @@ export function drawImageLayer(env: RenderEnv, l: ImageLayer): void {
   } else if (l.media?.width && l.media.height) {
     h = (l.size * l.media.height) / l.media.width;
   }
-  env.bounds?.set(l.id, { x: ax, y: ay, ox: -w / 2, oy: -h / 2, w, h, scale: l.transform.scale, rotation });
+  const echoSpan = Math.floor(Math.max(1, Math.round(l.echo ?? 1)) / 2) * (l.echoSpacing ?? 0.85) * w;
+  env.bounds?.set(l.id, { x: ax, y: ay, ox: -w / 2 - echoSpan, oy: -h / 2, w: w + echoSpan * 2, h, scale: l.transform.scale, rotation });
 
   const m = motion(env, l.animation, l.animationSpeed, hashString(l.id) * 100, l.audioReact);
   const scale = l.transform.scale * m.s;
@@ -152,30 +153,41 @@ export function drawImageLayer(env: RenderEnv, l: ImageLayer): void {
   if (l.blur > 0) filters.push(`blur(${l.blur * pr}px)`);
   if (filters.length && supportsCanvasFilter) ctx.filter = filters.join(" ");
 
-  if (l.glow > 0) {
-    ctx.shadowColor = l.glowColor;
-    ctx.shadowBlur = l.glow * 70 * pr;
-  }
-  if (m.split > 0) {
-    const comp = ctx.globalCompositeOperation;
-    ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha *= 0.5;
-    ctx.drawImage(el, -w / 2 - m.split, -h / 2, w, h);
-    ctx.drawImage(el, -w / 2 + m.split, -h / 2, w, h);
-    ctx.globalAlpha /= 0.5;
-    ctx.globalCompositeOperation = comp;
-  }
-  if (l.radius > 0) {
-    // Draw the glow from the rounded silhouette, then the clipped image.
-    roundRectPath(ctx, -w / 2, -h / 2, w, h, l.radius);
+  // Photo echo: copies side by side, the outer ones slightly dimmer.
+  const echo = Math.max(1, Math.round(l.echo ?? 1));
+  const spacing = (l.echoSpacing ?? 0.85) * w;
+  const half = Math.floor(echo / 2);
+  const baseAlpha = ctx.globalAlpha;
+  const comp = ctx.globalCompositeOperation;
+  for (let i = -half; i <= half; i++) {
+    ctx.save();
+    ctx.translate(i * spacing, 0);
+    if (l.mirror && i % 2 !== 0) ctx.scale(-1, 1);
+    ctx.globalAlpha = baseAlpha * (i === 0 ? 1 : Math.max(0.35, 0.85 - Math.abs(i) * 0.15));
     if (l.glow > 0) {
-      ctx.fillStyle = "rgba(0,0,0,1)";
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.shadowColor = l.glowColor;
+      ctx.shadowBlur = l.glow * 70 * pr;
     }
-    ctx.clip();
+    if (m.split > 0) {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha *= 0.5;
+      ctx.drawImage(el, -w / 2 - m.split, -h / 2, w, h);
+      ctx.drawImage(el, -w / 2 + m.split, -h / 2, w, h);
+      ctx.globalAlpha /= 0.5;
+      ctx.globalCompositeOperation = comp;
+    }
+    if (l.radius > 0) {
+      roundRectPath(ctx, -w / 2, -h / 2, w, h, l.radius);
+      if (l.glow > 0) {
+        ctx.fillStyle = "rgba(0,0,0,1)";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      ctx.clip();
+    }
+    ctx.drawImage(el, -w / 2, -h / 2, w, h);
+    ctx.restore();
   }
-  ctx.drawImage(el, -w / 2, -h / 2, w, h);
   ctx.restore();
 }
 

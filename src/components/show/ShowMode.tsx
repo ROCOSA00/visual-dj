@@ -239,7 +239,7 @@ export function ShowMode({ project }: { project: Project }) {
           aria-label={`Live visual: ${current?.name ?? ""}`}
           className={cn(
             "block aspect-video",
-            fit === "fit" ? "max-h-full w-full max-w-[calc(100dvh*16/9)]" : "min-h-full min-w-full w-[max(100vw,calc(100dvh*16/9))]",
+            fit === "fit" ? "show-fit max-h-full w-full" : "show-fill min-h-full min-w-full",
           )}
         />
       </div>

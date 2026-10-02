@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 import { Reveal, SectionHeading } from "./shared";
 
 const EXAMPLES: Array<{ template: string; artist: string; event: string; scene: number; span?: string }> = [
-  { template: "main-stage", artist: "KAIROS", event: "Festival main stage · Drop", scene: 2, span: "md:col-span-2 md:row-span-2" },
-  { template: "deep-velvet", artist: "Selene Vega", event: "Late-night house · Intro", scene: 0 },
-  { template: "ghost-protocol", artist: "MØRK", event: "Warehouse techno · Build", scene: 1 },
-  { template: "vhs-memories", artist: "LUNA b2b SOL", event: "Twitch stream · Break", scene: 3 },
-  { template: "third-eye", artist: "AURA X", event: "Psytrance stage · Drop", scene: 2 },
-  { template: "gold-rush", artist: "Dexter Hale", event: "VIP club night · Outro", scene: 4 },
+  { template: "ice-land", artist: "KAIROS", event: "Arena tour · Drop", scene: 2, span: "md:col-span-2 md:row-span-2" },
+  { template: "chrome-perreo", artist: "LA REINA", event: "Reggaeton night · Drop", scene: 2 },
+  { template: "red-room", artist: "MØRK", event: "Warehouse techno · Build", scene: 1 },
+  { template: "neon-barrio", artist: "LUNA", event: "Twitch stream · Drop", scene: 2 },
+  { template: "dembow-fuego", artist: "EL FLACO", event: "Dembow party · Drop", scene: 2 },
+  { template: "gold-vip", artist: "DEXTER", event: "VIP club night · Build", scene: 1 },
 ];
 
 export function Examples() {

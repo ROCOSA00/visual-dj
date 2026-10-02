@@ -19,6 +19,20 @@ export interface TextPreset {
 
 export const TEXT_PRESETS: TextPreset[] = [
   {
+    id: "ice3d",
+    label: "Ice 3D",
+    sample: "ICE",
+    preview: { font: "archivo-black", weight: 400, size: 28, glow: true, upper: true },
+    build: (p) => ({ content: "TOUR 2025", font: "archivo-black", weight: 400, size: 150, letterSpacing: 4, material: "ice", depth: 0.8, color: c(p, 0, "#2b8cff"), glow: 0.5, glowColor: c(p, 0, "#2b8cff"), animation: "swing" }),
+  },
+  {
+    id: "chrome3d",
+    label: "Chrome 3D",
+    sample: "CHROME",
+    preview: { font: "archivo-black", weight: 400, size: 22, gradient: true, upper: true },
+    build: () => ({ content: "SOLD OUT", font: "archivo-black", weight: 400, size: 150, letterSpacing: 4, material: "chrome", depth: 0.8, color: "#ffffff", glow: 0.3, glowColor: "#ffffff", animation: "punch" }),
+  },
+  {
     id: "neon",
     label: "Neon sign",
     sample: "Neon",
@@ -89,15 +103,57 @@ export interface ArtistStyle {
   build: (p: Pal) => Partial<TextLayer>;
 }
 
+const flatText = { outline: false, gradient: { enabled: false, from: "#ffffff", to: "#ffffff" }, uppercase: true, chromatic: 0 };
+
 export const ARTIST_STYLES: ArtistStyle[] = [
-  { id: "festival", label: "Festival", preview: { font: "unbounded", weight: 900 }, build: (p) => ({ font: "unbounded", weight: 900, size: 180, letterSpacing: 6, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.6, glowColor: c(p, 0, "#8b5cf6"), animation: "pulse", audioReact: 0.4, chromatic: 0 }) },
-  { id: "techno", label: "Techno", preview: { font: "big-shoulders", weight: 900, spacing: 3 }, build: (p) => ({ font: "big-shoulders", weight: 900, size: 240, letterSpacing: 26, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.25, glowColor: c(p, 0, "#ff1f3d"), animation: "none", audioReact: 0.5, chromatic: 0.15 }) },
-  { id: "cyber", label: "Cyber", preview: { font: "orbitron", weight: 900, gradient: true }, build: (p) => ({ font: "orbitron", weight: 900, size: 150, letterSpacing: 8, outline: false, gradient: { enabled: true, from: c(p, 1, "#00f0ff"), to: c(p, 0, "#ff2bd6") }, glow: 0.6, glowColor: c(p, 0, "#ff2bd6"), animation: "flicker", chromatic: 0.25 }) },
-  { id: "minimal", label: "Minimal", preview: { font: "michroma", weight: 400, spacing: 6 }, build: () => ({ font: "michroma", weight: 400, size: 96, letterSpacing: 44, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.1, glowColor: "#ffffff", animation: "breathe", audioReact: 0.1, chromatic: 0 }) },
-  { id: "retro", label: "Retro neon", preview: { font: "monoton", weight: 400 }, build: (p) => ({ font: "monoton", weight: 400, size: 140, letterSpacing: 8, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: c(p, 1, "#00e1ff"), glow: 0.85, glowColor: c(p, 1, "#00e1ff"), animation: "flicker", chromatic: 0 }) },
-  { id: "editorial", label: "Editorial", preview: { font: "syne", weight: 800 }, build: (p) => ({ font: "syne", weight: 800, size: 180, letterSpacing: 0, uppercase: false, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.3, glowColor: c(p, 2, "#f472b6"), animation: "float", chromatic: 0 }) },
-  { id: "hollow", label: "Hollow", preview: { font: "anton", weight: 400, outline: true }, build: (p) => ({ font: "anton", weight: 400, size: 220, letterSpacing: 10, outline: true, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.4, glowColor: c(p, 0, "#8b5cf6"), animation: "zoom", chromatic: 0.1 }) },
-  { id: "glitch", label: "Glitch", preview: { font: "chakra", weight: 700 }, build: (p) => ({ font: "chakra", weight: 700, size: 150, letterSpacing: 10, outline: false, gradient: { enabled: false, from: "#fff", to: "#fff" }, color: "#ffffff", glow: 0.4, glowColor: c(p, 1, "#22d3ee"), animation: "glitch", chromatic: 0.3 }) },
+  {
+    id: "ice",
+    label: "Ice 3D",
+    preview: { font: "archivo-black", weight: 400 },
+    build: (p) => ({ ...flatText, font: "archivo-black", weight: 400, size: 230, letterSpacing: 4, material: "ice", depth: 0.85, color: c(p, 0, "#2b8cff"), glow: 0.55, glowColor: c(p, 0, "#2b8cff"), animation: "swing", audioReact: 0.35 }),
+  },
+  {
+    id: "chrome",
+    label: "Chrome 3D",
+    preview: { font: "archivo-black", weight: 400 },
+    build: () => ({ ...flatText, font: "archivo-black", weight: 400, size: 230, letterSpacing: 4, material: "chrome", depth: 0.8, color: "#ffffff", glow: 0.3, glowColor: "#ffffff", animation: "punch", audioReact: 0.35 }),
+  },
+  {
+    id: "gold",
+    label: "Gold 3D",
+    preview: { font: "archivo-black", weight: 400 },
+    build: () => ({ ...flatText, font: "archivo-black", weight: 400, size: 220, letterSpacing: 6, material: "gold", depth: 0.8, color: "#f5c542", glow: 0.4, glowColor: "#f5c542", animation: "swing", audioReact: 0.3 }),
+  },
+  {
+    id: "fire",
+    label: "Fire",
+    preview: { font: "anton", weight: 400 },
+    build: () => ({ ...flatText, font: "anton", weight: 400, size: 250, letterSpacing: 8, material: "fire", depth: 0.7, color: "#ff5a00", glow: 0.6, glowColor: "#ff5a00", animation: "punch", audioReact: 0.4 }),
+  },
+  {
+    id: "neon",
+    label: "Neon tube",
+    preview: { font: "rubik-mono", weight: 400 },
+    build: (p) => ({ ...flatText, font: "rubik-mono", weight: 400, size: 170, letterSpacing: 4, material: "neon", depth: 0.35, color: c(p, 1, "#00f0ff"), glow: 0.8, glowColor: c(p, 1, "#00f0ff"), animation: "punch", audioReact: 0.35 }),
+  },
+  {
+    id: "block",
+    label: "Bold block",
+    preview: { font: "big-shoulders", weight: 900 },
+    build: (p) => ({ ...flatText, font: "big-shoulders", weight: 900, size: 260, letterSpacing: 20, material: "solid", depth: 0.6, color: "#ffffff", glow: 0.3, glowColor: c(p, 0, "#ff1f3d"), animation: "punch", audioReact: 0.45 }),
+  },
+  {
+    id: "glitch",
+    label: "Glitch",
+    preview: { font: "chakra", weight: 700 },
+    build: (p) => ({ ...flatText, font: "chakra", weight: 700, size: 160, letterSpacing: 10, material: "solid", depth: 0.3, color: "#ffffff", glow: 0.4, glowColor: c(p, 1, "#22d3ee"), animation: "glitch", chromatic: 0.3 }),
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    preview: { font: "michroma", weight: 400 },
+    build: () => ({ ...flatText, font: "michroma", weight: 400, size: 96, letterSpacing: 44, material: "neon", depth: 0, color: "#ffffff", glow: 0.3, glowColor: "#ffffff", animation: "breathe", audioReact: 0.1 }),
+  },
 ];
 
 export interface BackgroundPreset {

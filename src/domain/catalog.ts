@@ -12,6 +12,7 @@ import type {
   ParticleShape,
   ShapeType,
   TextAnimation,
+  TextMaterial,
 } from "./types";
 
 /**
@@ -145,6 +146,34 @@ export const EFFECTS: Record<EffectType, EffectMeta> = {
     reverse: null,
     defaults: { colors: ["#22ff88", "#eafff2"], intensity: 0.5 },
   },
+  marquee: {
+    label: "Name Marquee",
+    description: "Your name repeated in rows, scrolling across the screen.",
+    angle: { label: "Tilt", min: -30, max: 30, unit: "°" },
+    reverse: { label: "Direction", off: "Default", on: "Flipped" },
+    defaults: { intensity: 0.4, opacity: 0.35, audioReact: 0.5, font: "anton", text: "" },
+  },
+  rays: {
+    label: "Light Rays",
+    description: "Stage beams fanning out and pulsing on the kick.",
+    angle: { label: "Source height", min: -180, max: 180 },
+    reverse: { label: "Spin", off: "Clockwise", on: "Counter" },
+    defaults: { intensity: 0.55, audioReact: 0.7, speed: 0.6 },
+  },
+  shards: {
+    label: "Ice Shards",
+    description: "Crystal fragments flying towards the crowd.",
+    angle: null,
+    reverse: { label: "Direction", off: "Outward", on: "Inward" },
+    defaults: { intensity: 0.5, audioReact: 0.6 },
+  },
+  smoke: {
+    label: "Stage Smoke",
+    description: "Slow haze rolling across the floor.",
+    angle: null,
+    reverse: { label: "Drift", off: "Left", on: "Right" },
+    defaults: { intensity: 0.5, speed: 0.6, audioReact: 0.3 },
+  },
 };
 
 export interface OverlayMeta {
@@ -236,6 +265,22 @@ export const OVERLAYS: Record<OverlayType, OverlayMeta> = {
     animated: true,
     angle: null,
     defaults: { intensity: 0.5, color: "#ff2bd6" },
+  },
+  grade: {
+    label: "Colour Grade",
+    description: "Repaint the whole visual in a single colour.",
+    colorLabel: "Grade colour",
+    animated: false,
+    angle: null,
+    defaults: { intensity: 0.85, color: "#1e6bff" },
+  },
+  flare: {
+    label: "Lens Flare",
+    description: "Anamorphic light streak that flares on the beat.",
+    colorLabel: "Flare colour",
+    animated: true,
+    angle: { label: "Height", min: -180, max: 180 },
+    defaults: { intensity: 0.6, color: "#4da3ff" },
   },
 };
 
@@ -330,6 +375,9 @@ export const LAYER_KIND_LABELS: Record<LayerKind, string> = {
 
 export const TEXT_ANIMATIONS: Option<TextAnimation>[] = [
   { value: "none", label: "None" },
+  { value: "punch", label: "Beat punch" },
+  { value: "swing", label: "3D swing" },
+  { value: "spin3d", label: "3D spin" },
   { value: "pulse", label: "Pulse" },
   { value: "float", label: "Float" },
   { value: "breathe", label: "Breathe" },
@@ -339,6 +387,15 @@ export const TEXT_ANIMATIONS: Option<TextAnimation>[] = [
   { value: "zoom", label: "Zoom" },
   { value: "wave", label: "Wave" },
   { value: "slide", label: "Slide in" },
+];
+
+export const TEXT_MATERIALS: Option<TextMaterial>[] = [
+  { value: "solid", label: "Flat colour" },
+  { value: "ice", label: "Ice crystal" },
+  { value: "chrome", label: "Chrome" },
+  { value: "gold", label: "Gold" },
+  { value: "neon", label: "Neon tube" },
+  { value: "fire", label: "Fire" },
 ];
 
 export const MOTION_ANIMATIONS: Option<MotionAnimation>[] = [

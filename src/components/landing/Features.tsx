@@ -29,14 +29,14 @@ const FEATURES = [
   { icon: Clapperboard, title: "Scenes & show sets", body: "Organise your show as scenes: Intro, Build Up, Drop, Break, Outro. Duplicate, rename, reorder." },
   { icon: AudioLines, title: "Audio reactive", body: "Bass pulse, beat flashes, EQ bars, waveforms and particle bursts that follow the music." },
   { icon: MonitorPlay, title: "Show Mode", body: "Fullscreen output with a hideable controller, crossfades, blackout, strobe and tap tempo." },
-  { icon: BadgeCheck, title: "Your identity", body: "Your name, your logo, 16 display fonts and one-click colour palettes across the whole set." },
+  { icon: BadgeCheck, title: "Your identity", body: "Your name in 3D ice, chrome, gold, neon or fire, your logo, your photo echoed tour-style and one-click colour grades." },
   { icon: InfinityIcon, title: "Seamless loops", body: "Every animation is locked to your BPM and loops perfectly, bar after bar." },
   { icon: Download, title: "Export", body: "Grab stills or seamless WebM loops for Resolume, OBS or socials. MP4 and GIF coming soon." },
   { icon: Keyboard, title: "Keyboard-first", body: "Switch scenes with 1–9, play with Space, save with ⌘S. Built for dark booths." },
 ];
 
 export function Features() {
-  const audioScene = useMemo(() => buildShowSet(TEMPLATE_MAP["festival-fire"]!)[2]!, []);
+  const audioScene = useMemo(() => buildShowSet(TEMPLATE_MAP["dembow-fuego"]!)[2]!, []);
   return (
     <section id="features" className="scroll-mt-20 px-5 py-28 sm:px-8">
       <div className="mx-auto max-w-7xl">
@@ -100,7 +100,7 @@ const USE_CASES = [
   {
     title: "Club DJs",
     body: "Put your name on the LED wall behind the booth and match the room's energy scene by scene.",
-    template: "warehouse-pulse",
+    template: "red-room",
     artist: "MØRK",
     tag: "Weekly residencies",
   },
@@ -114,14 +114,14 @@ const USE_CASES = [
   {
     title: "Live streamers",
     body: "Give your Twitch or YouTube sets a signature look. Capture the browser window in OBS and go.",
-    template: "neon-district",
+    template: "neon-barrio",
     artist: "LUNA",
     tag: "OBS friendly",
   },
   {
     title: "Producers & live acts",
     body: "Turn your release artwork and logo into reactive visuals for showcases and album launches.",
-    template: "liquid-dreams",
+    template: "purple-haze",
     artist: "Selene Vega",
     tag: "Launch parties",
   },

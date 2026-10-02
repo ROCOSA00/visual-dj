@@ -4,11 +4,12 @@ import { Film, ImageIcon, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EmptyState, Skeleton } from "@/components/ui/misc";
 import { createBackground, createImage, createLogo, createScene, createVideo } from "@/domain/factories";
-import type { MediaRef, MonogramStyle } from "@/domain/types";
+import type { ImageLayer, MediaRef, MonogramStyle } from "@/domain/types";
 import { MARKS } from "@/engine/marks";
 import { ACCEPTED_IMAGE_TYPES, ACCEPTED_VIDEO_TYPES } from "@/services/media/mediaStore";
+import { useEditorStore } from "@/store/editor";
 import { editorActions } from "@/store/editorActions";
-import { useActiveProject } from "../hooks";
+import { useActiveProject, useActiveScene, useSelectedLayer } from "../hooks";
 import { PanelSection, PreviewTile, UploadDropzone } from "./common";
 import { uploadMedia, useMediaLibrary, useMediaUrl } from "./useMedia";
 
@@ -91,13 +92,22 @@ export function LogoPanel() {
 export function ImagePanel() {
   const [busy, setBusy] = useState(false);
   const { assets, remove } = useMediaLibrary("image");
+  const scene = useActiveScene();
+  const selected = useSelectedLayer();
+  const target =
+    selected?.kind === "image" ? selected : [...(scene?.layers ?? [])].reverse().find((l): l is ImageLayer => l.kind === "image");
   const add = (ref: MediaRef) => editorActions.addLayer(createImage({ name: ref.name.replace(/\.[^.]+$/, ""), media: ref }));
+  const echo = (copies: number, mirror: boolean) => {
+    if (!target) return;
+    editorActions.updateLayer(target.id, { echo: copies, mirror, echoSpacing: copies > 3 ? 0.7 : 0.85, size: copies > 3 ? 560 : 760 } as Partial<ImageLayer>);
+    useEditorStore.getState().select(target.id);
+  };
   return (
     <div className="space-y-6">
       <UploadDropzone
         accept={ACCEPTED_IMAGE_TYPES}
-        title="Upload images"
-        hint="PNG, JPG, WebP, GIF or SVG · or drop them on the canvas"
+        title="Upload images or your photo"
+        hint="PNG with transparent background works best · or drop on the canvas"
         busy={busy}
         onFiles={async (files) => {
           setBusy(true);
@@ -108,6 +118,34 @@ export function ImagePanel() {
           setBusy(false);
         }}
       />
+      <PanelSection title="Tour photo echo">
+        <p className="-mt-1 text-2xs leading-relaxed text-subtle">
+          Repeat your photo side by side, like big tour visuals. Combine it with a Colour Grade overlay for a one-colour look.
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Single", copies: 1, mirror: false },
+            { label: "Triple", copies: 3, mirror: false },
+            { label: "Mirror ×5", copies: 5, mirror: true },
+          ].map((o) => (
+            <button
+              key={o.label}
+              type="button"
+              disabled={!target}
+              onClick={() => echo(o.copies, o.mirror)}
+              className="flex flex-col items-center gap-1.5 rounded-xl border border-line bg-white/[0.03] px-2 py-3 text-[11px] font-medium text-muted transition-all hover:border-white/25 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <span className="flex h-6 items-end gap-0.5">
+                {Array.from({ length: o.copies }, (_, i) => (
+                  <span key={i} className="w-2 rounded-t-full bg-accent-soft/80" style={{ height: i === Math.floor(o.copies / 2) ? 22 : 16 }} />
+                ))}
+              </span>
+              {o.label}
+            </button>
+          ))}
+        </div>
+        {!target && <p className="text-2xs text-subtle">Add a photo first, then pick an echo.</p>}
+      </PanelSection>
       <PanelSection title="Your uploads">
         <MediaGrid assets={assets} type="image" onPick={add} onRemove={remove} />
       </PanelSection>

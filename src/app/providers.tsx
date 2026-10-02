@@ -2,6 +2,7 @@
 
 import { MotionConfig } from "framer-motion";
 import { useEffect } from "react";
+import { BrowserNotice } from "@/components/app-shell/BrowserNotice";
 import { Toaster } from "@/components/ui/Toaster";
 import { preloadVisualFonts } from "@/engine/fontLoader";
 import { useProjectsStore } from "@/store/projects";
@@ -20,6 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <MotionConfig reducedMotion={reduceUiMotion ? "always" : "user"}>
+      <BrowserNotice />
       {children}
       <Toaster />
     </MotionConfig>

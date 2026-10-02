@@ -28,6 +28,12 @@ export function insertionIndex(layers: Layer[], layer: Layer): number {
   let topStack = layers.length;
   while (topStack > 0 && layers[topStack - 1]!.kind === "overlay") topStack--;
   if (layer.kind === "overlay") return layers.length;
+  // Photos and free videos sit behind names and logos, like tour visuals.
+  if (layer.kind === "image" || layer.kind === "video") {
+    const firstLabel = layers.findIndex((l) => l.kind === "text" || l.kind === "logo");
+    if (firstLabel !== -1 && firstLabel < topStack) return firstLabel;
+    return topStack;
+  }
   if (isForeground(layer)) return topStack;
   if (layer.kind === "audio" && ["beatFlash", "strobe", "bassPulse", "cameraShake"].includes(layer.effect)) return topStack;
   const firstForeground = layers.findIndex(isForeground);

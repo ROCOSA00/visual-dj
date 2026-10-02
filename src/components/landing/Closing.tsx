@@ -13,7 +13,7 @@ import { Reveal } from "./shared";
 
 export function FinalCta() {
   const scene = useMemo(() => {
-    const base = templatePreviewScene(TEMPLATE_MAP["hyperdrive"]!);
+    const base = templatePreviewScene(TEMPLATE_MAP["ice-land"]!);
     return { ...base, layers: base.layers.filter((l) => l.kind !== "text") };
   }, []);
   return (

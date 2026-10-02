@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createProjectFromTemplate, type TemplateDefinition } from "@/domain/templates";
 import type { Project } from "@/domain/types";
+import { deepClone } from "@/lib/clone";
 import { createId } from "@/lib/id";
 import { projectRepository, StorageQuotaError } from "@/services/projects/projectRepository";
 
@@ -84,7 +85,7 @@ export const useProjectsStore = create<ProjectsState>((set, get) => {
       if (!source) return null;
       const now = Date.now();
       const copy: Project = {
-        ...structuredClone(source),
+        ...deepClone(source),
         id: createId("p_"),
         name: `${source.name} (copy)`,
         createdAt: now,

@@ -118,6 +118,9 @@ export interface BackgroundLayer extends LayerBase<"background"> {
 
 export type TextAnimation =
   | "none"
+  | "punch"
+  | "swing"
+  | "spin3d"
   | "pulse"
   | "float"
   | "breathe"
@@ -127,6 +130,9 @@ export type TextAnimation =
   | "zoom"
   | "wave"
   | "slide";
+
+/** Surface finish of the letters, from flat colour to glossy 3D looks. */
+export type TextMaterial = "solid" | "ice" | "chrome" | "gold" | "neon" | "fire";
 
 export interface TextLayer extends LayerBase<"text"> {
   /** "artist" layers always render the project's artist name. */
@@ -143,6 +149,10 @@ export interface TextLayer extends LayerBase<"text"> {
   letterSpacing: number;
   uppercase: boolean;
   outline: boolean;
+  /** Letter finish. "solid" uses colour / gradient. */
+  material: TextMaterial;
+  /** 3D extrusion depth, 0 = flat. 0..1 */
+  depth: number;
   transform: Transform;
   animation: TextAnimation;
   animationSpeed: number;
@@ -187,6 +197,12 @@ export interface LogoLayer extends LayerBase<"logo"> {
 
 export interface ImageLayer extends LayerBase<"image"> {
   media: MediaRef | null;
+  /** Copies side by side (1, 3 or 5), like a tour-visual photo echo. */
+  echo: number;
+  /** Distance between copies, as a fraction of the image width. */
+  echoSpacing: number;
+  /** Flip every other copy. */
+  mirror: boolean;
   /** Width in pixels at 1080p. */
   size: number;
   radius: number;
@@ -260,7 +276,11 @@ export type EffectType =
   | "aurora"
   | "sun"
   | "spiral"
-  | "dataRain";
+  | "dataRain"
+  | "marquee"
+  | "rays"
+  | "shards"
+  | "smoke";
 
 export interface EffectLayer extends LayerBase<"effect"> {
   effect: EffectType;
@@ -276,6 +296,10 @@ export interface EffectLayer extends LayerBase<"effect"> {
   /** Size multiplier. */
   scale: number;
   audioReact: number;
+  /** Marquee only: text to repeat; empty uses the artist name. */
+  text?: string;
+  /** Marquee only. */
+  font?: FontId;
 }
 
 export type OverlayType =
@@ -288,7 +312,9 @@ export type OverlayType =
   | "crt"
   | "lightLeak"
   | "hud"
-  | "glitch";
+  | "glitch"
+  | "grade"
+  | "flare";
 
 export interface OverlayLayer extends LayerBase<"overlay"> {
   overlay: OverlayType;

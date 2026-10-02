@@ -1,4 +1,6 @@
+import { nearestWeight } from "@/domain/fonts";
 import type { EffectLayer, EffectType } from "@/domain/types";
+import { canvasFont } from "../../fontLoader";
 import { phase, type RenderEnv } from "../env";
 import {
   STAGE_H,
@@ -8,6 +10,7 @@ import {
   glowSprite,
   hash,
   hashString,
+  mixHex,
   paletteAt,
   pick,
   polygonPath,
@@ -499,6 +502,195 @@ const dataRain: EffectRenderer = (env, l, colors) => {
   }
 };
 
+/* --------------------------------- marquee -------------------------------- */
+
+/** Rows of the artist name scrolling in alternating directions. */
+const marquee: EffectRenderer = (env, l, colors) => {
+  const { ctx } = env;
+  const text = (l.text?.trim() || env.artistName.trim() || "YOUR NAME").toUpperCase();
+  const rows = Math.round(3 + l.intensity * 5);
+  const rowH = STAGE_H / rows;
+  const size = rowH * 0.8 * l.scale;
+  const fontId = l.font ?? "anton";
+  ctx.font = canvasFont(fontId, nearestWeight(fontId, 900), size);
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  ctx.lineJoin = "round";
+  const unit = `${text}   ·   `;
+  const unitW = Math.max(40, ctx.measureText(unit).width);
+  const reps = Math.ceil((STAGE_W * 1.6) / unitW) + 2;
+  const line = unit.repeat(reps);
+  const base = phase(env, 16, l.speed);
+  const kick = 1 + env.audio.kick * l.audioReact * 0.5;
+  ctx.translate(CX, CY);
+  ctx.rotate((l.angle * Math.PI) / 180);
+  ctx.translate(-CX, -CY);
+  const extra = l.angle !== 0 ? 2 : 0;
+  for (let r = -extra; r < rows + extra; r++) {
+    const dir = (((r % 2) + 2) % 2 === 0 ? 1 : -1) * (l.reverse ? -1 : 1);
+    const speedMul = 1 + (((r % 2) + 2) % 2);
+    const offset = fract(base * speedMul * dir) * unitW;
+    const x = -unitW * 2 + offset - STAGE_W * 0.3;
+    const y = rowH * (r + 0.5);
+    const color = pick(colors, r + extra);
+    if ((((r % 2) + 2) % 2) === 0) {
+      ctx.strokeStyle = rgba(color, Math.min(1, 0.85 * kick));
+      ctx.lineWidth = Math.max(1.5, size * 0.028);
+      ctx.strokeText(line, x, y);
+    } else {
+      ctx.fillStyle = rgba(color, Math.min(1, 0.75 * kick));
+      ctx.fillText(line, x, y);
+    }
+  }
+};
+
+/* ---------------------------------- rays ---------------------------------- */
+
+/** Stage light rays fanning out from a point, pulsing with the kick. */
+const rays: EffectRenderer = (env, l, colors) => {
+  const { ctx } = env;
+  additive(ctx);
+  const n = Math.round(6 + l.intensity * 14);
+  const ph = phase(env, 32, l.speed) * TAU * (l.reverse ? -1 : 1);
+  const ox = CX;
+  const oy = CY + (l.angle / 180) * CY * 1.25;
+  const len = MAX_R * 1.7;
+  const kick = env.audio.kick * l.audioReact;
+  const pump = 0.7 + 0.5 * kick;
+  const grads = colors.map((c) => {
+    const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, len);
+    g.addColorStop(0, rgba(c, Math.min(1, 0.6 * pump)));
+    g.addColorStop(0.2, rgba(c, 0.16 * pump));
+    g.addColorStop(0.55, rgba(c, 0.04 * pump));
+    g.addColorStop(1, rgba(c, 0));
+    return g;
+  });
+  const beatIndex = Math.floor(env.beat);
+  const baseAlpha = ctx.globalAlpha;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * TAU + ph + Math.sin(ph * 2 + i * 1.7) * 0.12;
+    const w = (TAU / n) * (0.05 + 0.16 * hash(i * 3.7)) * l.scale;
+    // Some beams strobe off and on with the beat for a live-light feel.
+    if (hash(i * 9.1 + beatIndex * 0.37) < 0.18 * l.audioReact) continue;
+    ctx.globalAlpha = baseAlpha * (0.55 + 0.45 * hash(i * 5.3 + beatIndex));
+    ctx.fillStyle = grads[i % grads.length]!;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.lineTo(ox + Math.cos(a - w / 2) * len, oy + Math.sin(a - w / 2) * len);
+    ctx.lineTo(ox + Math.cos(a + w / 2) * len, oy + Math.sin(a + w / 2) * len);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.globalAlpha = baseAlpha;
+  const core = 200 * (0.6 + l.intensity) * pump;
+  ctx.drawImage(glowSprite(colors[0]!, 0.12), ox - core, oy - core, core * 2, core * 2);
+};
+
+/* --------------------------------- shards --------------------------------- */
+
+const shardCache = new Map<string, Float32Array>();
+
+/** Crystal shards flying out of the screen. */
+const shards: EffectRenderer = (env, l, colors) => {
+  const { ctx } = env;
+  additive(ctx);
+  const count = Math.round((14 + l.intensity * 40) * (0.5 + 0.5 * env.quality));
+  const key = `${l.id}:${count}`;
+  let data = shardCache.get(key);
+  if (!data) {
+    const rand = seededRandom(hashString(l.id) + 0.5);
+    data = new Float32Array(count * 10);
+    for (let i = 0; i < count; i++) {
+      const o = i * 10;
+      data[o] = rand() * TAU; // direction
+      data[o + 1] = rand(); // depth offset
+      data[o + 2] = 1 + Math.floor(rand() * 2); // speed multiplier
+      data[o + 3] = (rand() - 0.5) * 2; // spin
+      for (let v = 0; v < 3; v++) {
+        // three extra vertices (plus a shared tip) for a jagged crystal
+        data[o + 4 + v * 2] = 0.35 + rand() * 0.65;
+        data[o + 5 + v * 2] = (v / 3) * TAU + (rand() - 0.5) * 0.9;
+      }
+    }
+    if (shardCache.size > 32) shardCache.clear();
+    shardCache.set(key, data);
+  }
+  const ph = phase(env, 8, l.speed) * (l.reverse ? -1 : 1);
+  const kick = 1 + env.audio.kick * l.audioReact * 0.5;
+  const light = mixHex(colors[0]!, "#ffffff", 0.7);
+  for (let i = 0; i < count; i++) {
+    const o = i * 10;
+    const a = data[o]!;
+    const z = fract(data[o + 1]! + ph * data[o + 2]!);
+    const dist = Math.pow(z, 1.5) * MAX_R * 1.1;
+    const x = CX + Math.cos(a) * dist;
+    const y = CY + Math.sin(a) * dist;
+    const size = (16 + z * 150) * l.scale * kick;
+    const alpha = Math.min(1, z * 4) * (z > 0.88 ? 1 - (z - 0.88) / 0.12 : 1);
+    const spin = data[o + 3]! * ph * TAU * data[o + 2]! + a;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(spin);
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    for (let v = 0; v < 3; v++) {
+      const r = data[o + 4 + v * 2]! * size * 0.55;
+      const t = data[o + 5 + v * 2]! + 1.2;
+      ctx.lineTo(Math.cos(t) * r, Math.sin(t) * r);
+    }
+    ctx.closePath();
+    const color = pick(colors, i);
+    const grad = ctx.createLinearGradient(-size * 0.5, -size * 0.5, size, size * 0.3);
+    grad.addColorStop(0, rgba(light, 0.45 * alpha));
+    grad.addColorStop(0.5, rgba(color, 0.12 * alpha));
+    grad.addColorStop(1, rgba(color, 0.32 * alpha));
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.strokeStyle = rgba(light, 0.9 * alpha);
+    ctx.lineWidth = 1.2 + z * 2.2;
+    ctx.stroke();
+    // Inner facet line.
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size * 0.2, 0);
+    ctx.strokeStyle = rgba(color, 0.5 * alpha);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+/* ---------------------------------- smoke --------------------------------- */
+
+/** Slow stage haze rolling across the floor. */
+const smoke: EffectRenderer = (env, l, colors) => {
+  const { ctx } = env;
+  const w = 160;
+  const h = 90;
+  const { canvas, ctx: g } = env.scratch.get(`smoke:${l.id}`, w, h);
+  g.globalCompositeOperation = "source-over";
+  g.clearRect(0, 0, w, h);
+  const ph = phase(env, 32, l.speed) * (l.reverse ? -1 : 1);
+  const blobs = Math.round(6 + l.intensity * 8);
+  const kick = 1 + env.audio.kick * l.audioReact * 0.25;
+  for (let i = 0; i < blobs; i++) {
+    const k = 1 + (i % 2);
+    const x = fract(hash(i * 1.3) + ph * k * 0.5 * (i % 2 ? 1 : -1)) * (w + 60) - 30;
+    const y = h * (0.45 + hash(i * 2.9) * 0.55) + Math.sin((ph * k + hash(i)) * TAU) * 6;
+    const r = (22 + hash(i * 5.1) * 30) * l.scale * kick;
+    const grad = g.createRadialGradient(x, y, 0, x, y, r);
+    const c = pick(colors, i);
+    grad.addColorStop(0, rgba(c, 0.32 * (0.5 + l.intensity)));
+    grad.addColorStop(1, rgba(c, 0));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, w, h);
+  }
+  if (ctx.globalCompositeOperation === "source-over") ctx.globalCompositeOperation = "screen";
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, -60, -60, STAGE_W + 120, STAGE_H + 120);
+};
+
 const RENDERERS: Record<EffectType, EffectRenderer> = {
   tunnel,
   waves,
@@ -513,4 +705,8 @@ const RENDERERS: Record<EffectType, EffectRenderer> = {
   sun,
   spiral,
   dataRain,
+  marquee,
+  rays,
+  shards,
+  smoke,
 };

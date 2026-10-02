@@ -33,9 +33,9 @@ export function HowItWorks() {
   }, []);
   const scenes = useMemo(
     () => ({
-      pick: ["outrun-86", "third-eye", "aurora", "steel-foundry"].map((id) => templatePreviewScene(TEMPLATE_MAP[id]!)),
-      custom: templatePreviewScene(TEMPLATE_MAP["signature"]!),
-      show: templatePreviewScene(TEMPLATE_MAP["bass-cathedral"]!),
+      pick: ["chrome-perreo", "dembow-fuego", "cyber-ice", "gold-vip"].map((id) => templatePreviewScene(TEMPLATE_MAP[id]!)),
+      custom: templatePreviewScene(TEMPLATE_MAP["ice-land"]!),
+      show: templatePreviewScene(TEMPLATE_MAP["red-room"]!),
     }),
     [],
   );

@@ -73,7 +73,13 @@ export function Tooltip({ content, shortcut, side = "top", delay = 350, children
     },
     onFocus: (e: React.FocusEvent<HTMLElement>) => {
       childProps.onFocus?.(e);
-      if (e.currentTarget.matches(":focus-visible")) show(e.currentTarget);
+      let keyboardFocus = true;
+      try {
+        keyboardFocus = e.currentTarget.matches(":focus-visible");
+      } catch {
+        // Older Safari does not know :focus-visible; show the tooltip anyway.
+      }
+      if (keyboardFocus) show(e.currentTarget);
     },
     onBlur: (e: React.FocusEvent<HTMLElement>) => {
       childProps.onBlur?.(e);

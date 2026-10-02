@@ -342,6 +342,65 @@ const glitch: OverlayRenderer = (env, l) => {
   });
 };
 
+/**
+ * Monochrome colour grade: keeps the brightness of everything below and
+ * repaints it in one hue, like the single-colour looks of tour visuals.
+ */
+const grade: OverlayRenderer = (env, l) => {
+  inDeviceSpace(env.ctx, (w, h) => {
+    const ctx = env.ctx;
+    const base = ctx.globalAlpha;
+    ctx.globalCompositeOperation = "color";
+    ctx.globalAlpha = base * Math.min(1, l.intensity * 1.1);
+    ctx.fillStyle = l.color;
+    ctx.fillRect(0, 0, w, h);
+    // Push the tint into the highlights and keep blacks deep.
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.globalAlpha = base * l.intensity * 0.18;
+    ctx.fillRect(0, 0, w, h);
+  });
+};
+
+/** Anamorphic lens flare: a horizontal streak that flares on the kick. */
+const flare: OverlayRenderer = (env, l) => {
+  const { ctx } = env;
+  const y = STAGE_H / 2 + (l.angle / 180) * STAGE_H * 0.5;
+  const k = 0.55 + 0.45 * env.audio.kick;
+  const i = l.intensity * k;
+  const ph = phase(env, 16, l.speed);
+  ctx.globalCompositeOperation = "lighter";
+  const streak = (height: number, alpha: number) => {
+    const g = ctx.createLinearGradient(0, 0, STAGE_W, 0);
+    g.addColorStop(0, rgba(l.color, 0));
+    g.addColorStop(0.5, rgba(l.color, alpha));
+    g.addColorStop(1, rgba(l.color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, y - height / 2, STAGE_W, height);
+  };
+  streak(60 + 80 * i, 0.08 * i);
+  streak(14 + 10 * i, 0.3 * i);
+  streak(3 + 3 * i, 0.95 * i);
+  const core = ctx.createRadialGradient(STAGE_W / 2, y, 0, STAGE_W / 2, y, 280 * (0.5 + i));
+  core.addColorStop(0, `rgba(255,255,255,${0.7 * i})`);
+  core.addColorStop(0.2, rgba(l.color, 0.4 * i));
+  core.addColorStop(1, rgba(l.color, 0));
+  ctx.fillStyle = core;
+  ctx.fillRect(0, y - 600, STAGE_W, 1200);
+  // Ghost orbs drifting along the lens axis.
+  for (let o = 0; o < 4; o++) {
+    const t = Math.sin((ph + o * 0.23) * Math.PI * 2) * (0.25 + o * 0.12);
+    const ox = STAGE_W / 2 + t * STAGE_W * 0.6;
+    const oy = y + t * 120;
+    const r = 30 + o * 26;
+    const g = ctx.createRadialGradient(ox, oy, 0, ox, oy, r);
+    g.addColorStop(0, rgba(l.color, 0));
+    g.addColorStop(0.7, rgba(l.color, 0.12 * i));
+    g.addColorStop(1, rgba(l.color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(ox - r, oy - r, r * 2, r * 2);
+  }
+};
+
 const RENDERERS: Record<OverlayType, OverlayRenderer> = {
   scanlines,
   grain,
@@ -353,4 +412,6 @@ const RENDERERS: Record<OverlayType, OverlayRenderer> = {
   lightLeak,
   hud,
   glitch,
+  grade,
+  flare,
 };

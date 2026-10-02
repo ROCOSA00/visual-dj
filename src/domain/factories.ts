@@ -1,3 +1,4 @@
+import { deepClone } from "@/lib/clone";
 import { createId } from "@/lib/id";
 import type {
   AudioEffectType,
@@ -63,6 +64,8 @@ export function createText(p: Partial<TextLayer> = {}): TextLayer {
     letterSpacing: 4,
     uppercase: true,
     outline: false,
+    material: "solid",
+    depth: 0,
     transform: centre(),
     animation: "none",
     animationSpeed: 1,
@@ -123,6 +126,9 @@ export function createImage(p: Partial<ImageLayer> = {}): ImageLayer {
     kind: "image",
     name: "Image",
     media: null,
+    echo: 1,
+    echoSpacing: 0.85,
+    mirror: false,
     size: 640,
     radius: 0,
     transform: centre(),
@@ -253,7 +259,7 @@ export function createAudioLayer(effect: AudioEffectType, p: Partial<AudioLayer>
 
 /** Deep copy with fresh ids, used for duplication and template instancing. */
 export function cloneLayer<L extends Layer>(layer: L): L {
-  return { ...structuredClone(layer), id: createId("l_") };
+  return { ...deepClone(layer), id: createId("l_") };
 }
 
 export function cloneScene(scene: Scene, name?: string): Scene {

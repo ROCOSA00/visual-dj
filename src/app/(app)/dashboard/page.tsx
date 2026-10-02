@@ -14,7 +14,7 @@ import { Button, ButtonLink } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/misc";
 import { VisualCanvas } from "@/components/visual/VisualCanvas";
 import { GENRES } from "@/data/genres";
-import { TEMPLATE_MAP, TEMPLATES } from "@/data/templates";
+import { DEFAULT_TEMPLATE_ID, TEMPLATE_MAP, TEMPLATES } from "@/data/templates";
 import { templatePreviewScene, type TemplateDefinition } from "@/domain/templates";
 import { useMounted } from "@/hooks/useMounted";
 import { formatRelativeTime, getGreeting } from "@/lib/utils";
@@ -85,8 +85,8 @@ export default function DashboardPage() {
         <QuickAction
           icon={<Wand2 className="h-5 w-5" />}
           title="Quick start"
-          description="Our signature look, ready in one click"
-          onClick={() => router.push(`/new?template=signature`)}
+          description="Our Ice Land tour look, ready in one click"
+          onClick={() => router.push(`/new?template=${DEFAULT_TEMPLATE_ID}`)}
         />
         <QuickAction
           icon={<LayoutTemplate className="h-5 w-5" />}
@@ -286,7 +286,7 @@ function ContinueCard({ projectId }: { projectId: string }) {
 }
 
 function EmptyStage({ onCreate, onDemo, artist }: { onCreate: () => void; onDemo: () => void; artist: string }) {
-  const scene = useMemo(() => templatePreviewScene(TEMPLATE_MAP.signature!), []);
+  const scene = useMemo(() => templatePreviewScene(TEMPLATE_MAP[DEFAULT_TEMPLATE_ID]!), []);
   return (
     <div className="relative overflow-hidden rounded-3xl border border-line bg-black">
       <div className="absolute inset-0 opacity-45">

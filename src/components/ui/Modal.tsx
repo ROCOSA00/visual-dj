@@ -51,7 +51,7 @@ export function Modal({ open, onClose, title, description, children, className, 
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
             className={cn(
-              "relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-2xl border border-line-strong bg-surface-1 shadow-pop",
+              "relative flex modal-max-h w-full flex-col overflow-hidden rounded-2xl border border-line-strong bg-surface-1 shadow-pop",
               widths[size],
               className,
             )}

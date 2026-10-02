@@ -17,13 +17,20 @@ IndexedDB.
 - **Dashboard** (`/dashboard`): greeting, continue where you left off, recent
   visuals, recommended templates, genres, quick access to Show Mode. Includes
   an empty state and a "load demo shows" option.
-- **Template library** (`/templates`): 30 templates across 10 genres, with
+- **Template library** (`/templates`): 27 templates across 11 genres (Urban
+  first: reggaeton, dembow, afro), built like real DJ tour visuals: the artist
+  name as a huge 3D hero, one-colour grades and lights that hit on the kick. With
   search and filters (genre, style, energy, colour, animation), live animated
   thumbnails and a full preview of each template's five-scene show set.
 - **Editor** (`/editor/:id`):
   - Element sidebar: Text, Artist Name, Logo (upload, initials monogram or
     built-in marks), Image, Video, Shapes, Backgrounds, Effects, Overlays,
     Particles, Audio Reactive and Templates.
+  - 3D text: extruded letters with ice-crystal, chrome, gold, neon or fire
+    finishes, plus beat-punch, 3D swing and 3D spin animations.
+  - Tour-visual building blocks: name marquee rows, light rays, ice shards,
+    stage smoke, anamorphic lens flare, monochrome colour grade, and a photo
+    echo (your photo ×3 or mirrored ×5).
   - 16:9 "LED screen" canvas with live preview, click to select, drag to move,
     corner handles to resize, rotate handle, centre snapping and drag-and-drop
     uploads.
@@ -136,6 +143,12 @@ The code is organised so the planned features slot in without rewrites:
 
 Schema changes go through `domain/migrations.ts` (bump
 `PROJECT_SCHEMA_VERSION`).
+
+## Browser support
+
+Latest Chrome, Edge, Firefox and Safari 15.4+. Older browsers get CSS
+fallbacks and an "update your browser" notice; if something still fails, a
+friendly error screen shows the message instead of a blank page.
 
 ## Accessibility & safety
 
